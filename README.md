@@ -22,7 +22,7 @@ mode, and the adoption agency for misnested formatting elements.
   real corpus source (35 checks)
 - `test/browser_check.js` - live cross-check, run in the deployed page: the
   BROWSER's parser vs the html5lib oracle on all 12 inputs, tuple-for-tuple,
-  plus expected quirk notes (48 checks, all passing on the live site)
+  plus expected quirk notes (31 checks, all passing on the live site)
 
 Run the node tests:
 
