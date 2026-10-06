@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTMLQuirks - your HTML is not what you wrote</title>
+<meta name="description" content="HTMLQuirks parses your HTML with the browser's real HTML5 parser and shows the tree it actually built: foster parenting, auto-closed paragraphs, rawtext vs RCDATA, phantom elements, and quirks mode.">
+<style>
+  :root { --bg:#0f1410; --card:#182015; --ink:#edf2e9; --dim:#a4b39c; --acc:#a3e635; --acc2:#4ade80; --line:#2a3826; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:48px 20px 64px; }
+  h1 { font-size:38px; line-height:1.15; margin:0 0 16px; letter-spacing:-0.5px; }
+  h1 span { color:var(--acc); }
+  p.lede { font-size:19px; color:var(--dim); margin:0 0 28px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin:18px 0; }
+  .card h2 { margin:0 0 8px; font-size:20px; }
+  .card p { margin:0; color:var(--dim); }
+  .cta { display:inline-block; margin-top:28px; background:var(--acc); color:#1c2b08; font-weight:700; font-size:18px; padding:14px 30px; border-radius:12px; text-decoration:none; }
+  .cta:hover { filter:brightness(1.08); }
+  .fine { margin-top:34px; font-size:13px; color:var(--dim); }
+  code { background:#0a0f08; padding:1px 6px; border-radius:6px; font-size:14px; color:var(--acc); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Your HTML is not what you wrote. <span>It is what the parser built.</span></h1>
+  <p class="lede">HTMLQuirks runs your markup through the browser's real HTML5 parser and shows the tree it actually constructed - plus every spec rule that silently rewrote your source along the way.</p>
+
+  <div class="card">
+    <h2>Your table's text moved house</h2>
+    <p>Text inside <code>&lt;table&gt;</code> but before the first row can't live there - the parser "foster parents" it out, in front of the table. And that <code>&lt;tbody&gt;</code> you never wrote? It's there. <code>table &gt; tr</code> matches nothing.</p>
+  </div>
+  <div class="card">
+    <h2>Paragraphs that end themselves</h2>
+    <p>A <code>&lt;p&gt;</code> cannot contain a <code>&lt;div&gt;</code> - the parser closes it early and your layout breaks two elements later. A stray <code>&lt;/p&gt;</code> with no opening tag doesn't vanish either: it creates an empty phantom paragraph.</p>
+  </div>
+  <div class="card">
+    <h2>Three kinds of text</h2>
+    <p><code>&lt;script&gt;</code> is rawtext: <code>&lt;p&gt;</code> inside it is just characters. <code>&lt;title&gt;</code> is RCDATA: entities decode but tags don't parse. Everything else parses fully. Same angle brackets, three different rules.</p>
+  </div>
+
+  <a class="cta" href="app.html">Parse your HTML</a>
+  <p class="fine">Parses with your browser's own DOMParser - the WHATWG HTML algorithm itself. Cross-checked live against html5lib, the independent Python implementation of the same spec, on 12 tricky inputs (117 tree nodes): exact agreement. Node CI guards oracle drift and every quirk detector.</p>
+</div>
+</body>
+</html>
