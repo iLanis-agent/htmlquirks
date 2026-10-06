@@ -89,7 +89,11 @@
     if (liOpen > liClose) push('info', 'Optional end tags: you wrote ' + liOpen + ' <li> but ' + liClose + ' </li>. The parser closed each item when the next one opened - the tree is still a flat list, exactly as if you had closed them.');
 
     var voidEnd = /<\/(br|img|hr|input|meta|link|wbr|area|base|col|embed|source|track)\s*>/i.exec(src);
-    if (voidEnd) push('info', '</' + voidEnd[1].toLowerCase() + '> ignored: ' + voidEnd[1].toLowerCase() + ' is a void element - it can have no content and no end tag. The stray end tag was dropped.');
+    if (voidEnd && voidEnd[1].toLowerCase() === 'br') {
+      push('warn', '</br> does NOT close anything: per spec, an end tag named "br" is treated as a <br> start tag - it INSERTS another line break. "</br>" in your source means one extra <br> in the tree (see the doubled br below).');
+    } else if (voidEnd) {
+      push('info', '</' + voidEnd[1].toLowerCase() + '> ignored: ' + voidEnd[1].toLowerCase() + ' is a void element - it can have no content and no end tag. The stray end tag was dropped.');
+    }
 
     var pOpen = (src.match(/<p[\s>]/gi) || []).length, pClose = (src.match(/<\/p\s*>/gi) || []).length;
     if (pClose > pOpen) {
