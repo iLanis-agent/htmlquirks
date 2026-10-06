@@ -7,7 +7,7 @@ NOTES = {
   'p-div.html':      ['<p> auto-closed', 'Standards mode'],
   'li-auto.html':    ['Optional end tags'],
   'foster.html':     ['Foster parenting', 'never wrote <tbody>'],
-  'void-stray.html': ['void element', 'Stray </p>'],
+  'void-stray.html': ['does NOT close anything', 'Stray </p>'],
   'rawtext.html':    ['<script> is rawtext', '<style> is rawtext'],
   'rcdata.html':     ['RCDATA'],
   'dupattr.html':    ['Duplicate attribute', 'Case folding'],
