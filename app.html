@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTMLQuirks</title>
+<style>
+  :root { --bg:#0f1410; --card:#182015; --ink:#edf2e9; --dim:#a4b39c; --acc:#a3e635; --acc2:#4ade80;
+          --ok:#4ade80; --warn:#fbbf24; --info:#60a5fa; --line:#2a3826; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width:980px; margin:0 auto; padding:28px 20px 64px; }
+  .top { display:flex; align-items:baseline; gap:12px; margin-bottom:18px; }
+  h1 { font-size:26px; margin:0; }
+  .top a { color:var(--dim); font-size:14px; text-decoration:none; }
+  .top a:hover { color:var(--acc2); }
+  textarea { width:100%; height:150px; background:#0a0f08; color:#cfe3c0; border:1px solid var(--line); border-radius:10px;
+             font:13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; padding:12px; }
+  .presets { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 6px; }
+  .presets button { background:#22301c; color:var(--dim); border:1px solid var(--line); border-radius:8px; padding:6px 12px;
+                    font-size:13px; cursor:pointer; font-family:inherit; }
+  .presets button:hover { color:var(--ink); border-color:var(--acc2); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin:14px 0; }
+  .card h2 { margin:0 0 10px; font-size:15px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); }
+  .badge { display:inline-block; font:700 13px ui-monospace, Menlo, monospace; padding:4px 12px; border-radius:999px; margin:0 8px 6px 0; }
+  .badge.std { background:rgba(74,222,128,.15); color:var(--ok); }
+  .badge.quirks { background:rgba(251,191,36,.15); color:var(--warn); }
+  .badge.stat { background:#22301c; color:var(--dim); font-weight:400; }
+  .note { padding:8px 12px; border-radius:8px; margin:6px 0; font-size:14.5px; border-left:3px solid; }
+  .note.ok { background:rgba(74,222,128,.08); border-color:var(--ok); }
+  .note.warn { background:rgba(251,191,36,.08); border-color:var(--warn); }
+  .note.info { background:rgba(96,165,250,.08); border-color:var(--info); }
+  pre.tree { margin:0; font:13px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x:auto; color:#cfe3c0; white-space:pre; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>HTMLQuirks</h1><a href="index.html">&larr; what is this</a></div>
+  <textarea id="inp" spellcheck="false" placeholder="Paste HTML here. Watch what the parser does to it."></textarea>
+  <div class="presets" id="presets"></div>
+  <div id="out"></div>
+</div>
+<script src="engine.js?v=370"></script>
+<script>
+const PRESETS = {"Duplicate attributes, UPPERCASE": "<!DOCTYPE html>\n<DIV ID=\"first\" id=\"second\" CLASS=\"Big\">x</DIV>", "Text inside table (foster parenting)": "<!DOCTYPE html>\n<table>hello<tr><td>x</td></tr>tail</table>", "Unclosed list items": "<!DOCTYPE html>\n<ul>\n<li>one\n<li>two\n<li>three\n</ul>", "Bare text, no tags": "<!DOCTYPE html>\nhello world", "Misnested b/i (adoption agency)": "<!DOCTYPE html>\n<b><i>bold italic</b> plain again</i>", "No doctype (quirks mode)": "<html><body><p>no doctype at all</p></body></html>", "div inside p": "<!DOCTYPE html>\n<p>first para\n<div>a div cannot live inside a p</div>", "Markup inside script/style": "<!DOCTYPE html>\n<script>if (a < b) { el.innerHTML = \"<p>not markup</p>\"; }</script>\n<style>p > b { color: red }</style>", "title/textarea RCDATA": "<!DOCTYPE html>\n<title>a &lt;b&gt; <div> stays text</title>\n<textarea><b>not bold</b> &amp; more</textarea>", "SVG self-closing + breakout": "<!DOCTYPE html>\n<svg><circle r=\"5\"/><desc>inside svg</desc></svg>\n<svg><rect width=\"3\"/><p>this p breaks OUT of the svg</p></svg>", "The phantom tbody": "<!DOCTYPE html>\n<table><tr><td>no tbody written</td></tr></table>", "Void end tags + stray </p>": "<!DOCTYPE html>\n<p>a<br></br>line</p>\n</p>stray"};
+const inp = document.getElementById('inp');
+const out = document.getElementById('out');
+
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function render() {
+  const src = inp.value;
+  if (!src.trim()) { out.innerHTML = ''; return; }
+  const doc = HTMLQuirks.parseDocument(src);
+  const tuples = HTMLQuirks.walk(doc);
+  const counts = HTMLQuirks.countNodes(tuples);
+  const notes = HTMLQuirks.detect(doc, src);
+
+  let h = '<div class="card"><h2>Parse result</h2>';
+  h += doc.compatMode === 'BackCompat'
+    ? '<span class="badge quirks">QUIRKS MODE</span>'
+    : '<span class="badge std">STANDARDS MODE</span>';
+  h += `<span class="badge stat">${counts.elements} elements</span><span class="badge stat">${counts.text} text nodes</span><span class="badge stat">${counts.comments} comments</span>`;
+  h += '</div>';
+
+  h += '<div class="card"><h2>What the parser did to your markup</h2>' +
+    notes.map(n => `<div class="note ${n.sev}">${esc(n.text)}</div>`).join('') + '</div>';
+
+  h += '<div class="card"><h2>The tree it actually built</h2><pre class="tree">' + esc(HTMLQuirks.render(tuples)) + '</pre></div>';
+  out.innerHTML = h;
+}
+
+const pr = document.getElementById('presets');
+for (const name of Object.keys(PRESETS)) {
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.onclick = () => { inp.value = PRESETS[name]; render(); };
+  pr.appendChild(b);
+}
+inp.addEventListener('input', render);
+inp.value = PRESETS['Text inside table (foster parenting)'];
+render();
+</script>
+</body>
+</html>
